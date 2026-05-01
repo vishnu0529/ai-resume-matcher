@@ -1,0 +1,12 @@
+google-genai>=1.0.0
+fastapi>=0.110.0
+uvicorn[standard]>=0.29.0
+sentence-transformers>=3.0.0
+faiss-cpu>=1.8.0
+pdfplumber>=0.11.0
+python-multipart>=0.0.9
+streamlit>=1.33.0
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+anthropic>=1.0.0
