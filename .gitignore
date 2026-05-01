@@ -3,3 +3,15 @@ __pycache__/
 *.pyc
 chroma_db/
 *.pdf
+.DS_Store
+.venv/
+venv/
+env/
+.python-version
+.idea/
+.vscode/
+pytest_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+.mypy_cache/
+.cache/
