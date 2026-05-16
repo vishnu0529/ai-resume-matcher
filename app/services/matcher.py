@@ -1,94 +1,70 @@
-import re
-import numpy as np
-from typing import Dict, Optional
+import logging
+from app.services.llm_client import call_llm_json
+from app.models.schemas import MatchResponse, SkillGap
 
-_model = None
-_faiss = None
+logger = logging.getLogger(__name__)
 
+SYSTEM_PROMPT = """
+You are an expert AI recruitment analyst. Evaluate the candidate's resume against the job description and return a structured, honest assessment.
 
-def get_model() -> Optional[object]:
-    global _model
-    if _model is None:
-        try:
-            from sentence_transformers import SentenceTransformer
-            _model = SentenceTransformer("all-MiniLM-L6-v2")
-        except Exception:
-            _model = None
-    return _model
+Rules:
+- Be specific. Reference actual skills and technologies from the texts.
+- Match score must reflect real alignment, not optimism.
+- ATS keywords must be exact strings from the job description.
+- Return ONLY valid JSON matching the schema below. No markdown, no extra prose.
 
-
-def get_faiss() -> Optional[object]:
-    global _faiss
-    if _faiss is None:
-        try:
-            import faiss
-            _faiss = faiss
-        except Exception:
-            _faiss = None
-    return _faiss
-
-
-def compute_match_score(resume_text: str, job_text: str) -> dict:
-    model = get_model()
-    faiss_lib = get_faiss()
-    if model is None or faiss_lib is None:
-        return _fallback_match_score(resume_text, job_text)
-
-    resume_chunks = _chunk(resume_text)
-    job_chunks = _chunk(job_text)
-
-    try:
-        resume_embs = model.encode(resume_chunks, normalize_embeddings=True)
-        job_embs = model.encode(job_chunks, normalize_embeddings=True)
-    except Exception:
-        return _fallback_match_score(resume_text, job_text)
-
-    resume_matrix = np.array(resume_embs, dtype="float32")
-    job_matrix = np.array(job_embs, dtype="float32")
-
-    dim = resume_matrix.shape[1]
-    index = faiss_lib.IndexFlatIP(dim)
-    index.add(resume_matrix)
-
-    scores = []
-    for je in job_matrix:
-        D, _ = index.search(np.expand_dims(je, axis=0), k=1)
-        scores.append(float(D[0][0]))
-
-    avg_score = float(np.mean(scores)) if scores else 0.0
-    pct = round(min(avg_score * 100, 100), 1)
-
-    return {
-        "match_score": pct,
-        "label": _label(pct),
-        "chunks_compared": len(job_chunks),
+JSON schema:
+{
+  "match_score": <int 0-100>,
+  "grade": <"A"|"B"|"C"|"D"|"F">,
+  "matched_skills": [<string>],
+  "missing_skills": [
+    {
+      "skill": <string>,
+      "importance": <"critical"|"nice-to-have">,
+      "how_to_acquire": <string>
     }
+  ],
+  "strengths": [<string>],
+  "weaknesses": [<string>],
+  "tailored_summary": <string>,
+  "cover_letter_snippet": <string>,
+  "recommended_roles": [<string>],
+  "ats_keywords": [<string>],
+  "improvement_tips": [<string>]
+}
+""".strip()
 
+def score_grade(score: int) -> str:
+    if score >= 85: return "A"
+    if score >= 70: return "B"
+    if score >= 55: return "C"
+    if score >= 40: return "D"
+    return "F"
 
-def _fallback_match_score(resume_text: str, job_text: str) -> dict:
-    resume_tokens = set(re.findall(r"\w+", resume_text.lower()))
-    job_tokens = set(re.findall(r"\w+", job_text.lower()))
-    overlap = resume_tokens.intersection(job_tokens)
-    pct = round(len(overlap) / max(1, len(job_tokens)) * 100, 1)
-    return {
-        "match_score": pct,
-        "label": _label(pct),
-        "chunks_compared": 1,
-        "fallback": True,
-    }
-
-
-def _chunk(text: str, size: int = 100) -> list[str]:
-    words = text.split()
-    chunks = [" ".join(words[i:i+size]) for i in range(0, len(words), size)]
-    return chunks or [text]
-
-
-def _label(score: float) -> str:
-    if score >= 80:
-        return "Excellent match"
-    if score >= 60:
-        return "Good match"
-    if score >= 40:
-        return "Partial match"
-    return "Low match"
+def analyse(resume_text: str, job_description: str) -> MatchResponse:
+    user_prompt = f"=== RESUME ===\n{resume_text}\n\n=== JOB DESCRIPTION ===\n{job_description}\n\nAnalyse and return the JSON assessment."
+    logger.info("Sending to LLM for analysis...")
+    data = call_llm_json(SYSTEM_PROMPT, user_prompt, max_tokens=2500)
+    score = int(data.get("match_score", 0))
+    missing_skills = [
+        SkillGap(
+            skill=g.get("skill", ""),
+            importance=g.get("importance", "nice-to-have"),
+            how_to_acquire=g.get("how_to_acquire", ""),
+        )
+        for g in data.get("missing_skills", [])
+    ]
+    return MatchResponse(
+        match_score=score,
+        grade=data.get("grade") or score_grade(score),
+        matched_skills=data.get("matched_skills", []),
+        missing_skills=missing_skills,
+        strengths=data.get("strengths", []),
+        weaknesses=data.get("weaknesses", []),
+        tailored_summary=data.get("tailored_summary", ""),
+        cover_letter_snippet=data.get("cover_letter_snippet", ""),
+        recommended_roles=data.get("recommended_roles", []),
+        ats_keywords=data.get("ats_keywords", []),
+        improvement_tips=data.get("improvement_tips", []),
+    )
