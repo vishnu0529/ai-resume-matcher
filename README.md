@@ -26,6 +26,11 @@
 
 ---
 
+
+## 📸 Dashboard Preview
+
+![AI Resume Matcher Dashboard](assets/dashboard_screenshot.png)
+
 ## 🧠 Overview
 
 AI Resume Matcher is a full-stack AI application that acts as an intelligent recruitment assistant.
