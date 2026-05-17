@@ -5,9 +5,13 @@
 [![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.39-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet)
+![Pipeline](https://img.shields.io/badge/Pipeline-Agentic%204--step-orange)
 
-> An intelligent LLM-powered recruitment assistant that scores resumes against job descriptions,
-> identifies skill gaps, generates tailored resume content, and surfaces ATS keywords.
+> **v2.0** — Agentic 4-step LLM pipeline · AI chat coach · Score breakdown by category
+> 
+> An intelligent recruitment assistant that runs a multi-agent analysis chain: skill extraction
+> → gap scoring → content generation → strategy — then lets you ask follow-up questions in plain English.
 
 ---
 
@@ -25,11 +29,6 @@
 - [Roadmap](#-roadmap)
 
 ---
-
-
-## 📸 Dashboard Preview
-
-![AI Resume Matcher Dashboard](assets/dashboard_screenshot.png)
 
 ## 🧠 Overview
 
@@ -66,34 +65,60 @@ nuance, and role-specific requirements — the same way a senior recruiter would
 | 🌐 **Dual LLM Support** | Switch between Google Gemini and Anthropic Claude via one env var |
 | 📄 **PDF and TXT Support** | Upload resume as PDF or plain text |
 | 🐳 **Docker Ready** | One-command local or production deployment |
+| 🤖 **Agentic Pipeline** | 4-step LLM chain: extract → score → generate → strategise |
+| 💬 **AI Chat Coach** | Ask follow-up questions about your analysis in plain English |
+| 📊 **Score Breakdown** | Category scores: technical, experience, domain fit, soft skills |
+| ⚡ **Quick Wins** | 3 things you can do today to improve your application |
+| 🔗 **LinkedIn Headline** | AI-generated headline optimised for the target role |
 
 ---
 
 ## 🏗️ Architecture
 
+### v2.0 Agentic Pipeline
+
 ```
-Streamlit Dashboard (localhost:8501)
-        |
-        | POST /api/v1/match
-        |
+Streamlit Dashboard v2 (localhost:8501)
+         |
+         |  POST /api/v1/match        POST /api/v1/chat
+         |
 FastAPI Backend (localhost:8000)
-        |
-  parser.py --> analyser.py --> matcher.py --> llm_client.py
-  PDF extract    skill regex     LLM prompt        |
-                                          ┌────────┴────────┐
-                                    Google Gemini    Anthropic Claude
-                                     2.5 Flash         3.5 Haiku
+         |
+   parser.py
+   PDF/TXT extract
+         |
+   recruiter_agent.py  ◄── 4-step agentic chain
+         |
+         ├─ [1] Skill Extractor    → resume_skills, jd_required, seniority_level
+         │
+         ├─ [2] Gap Analyser       → match_score, grade, score_breakdown, strengths
+         │        (sees Step 1 output)
+         │
+         ├─ [3] Content Generator  → tailored_summary, cover_letter, linkedin_headline
+         │        (sees Steps 1-2 output)
+         │
+         └─ [4] Strategist         → ats_keywords, improvement_tips, quick_wins, timeline
+                  (sees Steps 1-3 output)
+                       |
+                  llm_client.py
+              ┌────────┴────────┐
+        Google Gemini    Anthropic Claude
+         2.5 Flash         3.5 Haiku
+              └────────────────────────────────────► /api/v1/chat
+                                                    (follow-up Q&A
+                                                    with full context)
 ```
 
-**Request Flow:**
-1. User uploads PDF resume and pastes job description
-2. Dashboard POSTs to /api/v1/match
-3. parser.py extracts and cleans text from the PDF
-4. matcher.py sends an engineered prompt to the LLM
-5. LLM returns structured JSON analysis
-6. Pydantic validates the response
-7. Dashboard renders tabbed results UI
+### Request Flow
+1. User uploads PDF resume + pastes job description
+2. `parser.py` extracts and cleans text
+3. `recruiter_agent.py` runs 4 sequential LLM agents, each building on previous outputs
+4. Pydantic validates the assembled response
+5. Dashboard renders 6-tab UI — Skills, Content, ATS, Plan, Roles, Chat
 
+---
+
+## 🚀 Quick Start
 ---
 
 ## 🚀 Quick Start
@@ -215,13 +240,16 @@ ai-resume-matcher/
 │   │   ├── health.py           # GET /health
 │   │   └── match.py            # POST /api/v1/match
 │   ├── services/
+│   │   ├── recruiter_agent.py  # 4-step agentic pipeline (v2)
 │   │   ├── analyser.py         # Heuristic skill extraction
 │   │   ├── llm_client.py       # Gemini / Claude abstraction
-│   │   ├── matcher.py          # LLM prompt engineering
+│   │   ├── matcher.py          # Single-shot LLM fallback
 │   │   └── parser.py           # PDF/TXT extraction
 │   └── main.py                 # FastAPI app factory
+├── assets/
+│   └── dashboard_screenshot.png
 ├── tests/test_api.py           # Full test suite
-├── dashboard.py                # Streamlit frontend
+├── dashboard.py                # Streamlit frontend v2 with chat
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -232,12 +260,20 @@ ai-resume-matcher/
 
 ## 🔬 How It Works
 
-### Prompt Engineering
-The core of the system is a carefully crafted system prompt in matcher.py:
-- Role priming: establishes the LLM as a senior recruitment analyst
-- Hard constraints: forces specific responses referencing actual skills from the texts
-- Schema enforcement: full JSON schema provided so output is always structured
-- Anti-hallucination rules: ATS keywords must be exact strings from the job description
+### Agentic Pipeline (v2.0)
+Instead of one monolithic prompt, the system runs 4 specialised LLM agents in sequence.
+Each agent sees all previous outputs, enabling compound reasoning:
+
+- Step 1 Skill Extractor: precision extraction with evidence citations from both documents
+- Step 2 Gap Analyser: weighted scoring — technical 40%, experience 30%, domain 20%, soft 10%
+- Step 3 Content Generator: personalised content grounded in actual resume facts, not hallucinations
+- Step 4 Strategist: ATS keywords (exact JD strings), prioritised tips, quick wins, realistic timeline
+
+### AI Chat Coach
+After analysis, users ask follow-up questions via /api/v1/chat. The full analysis JSON
+is passed as context with every question, so answers are specific and grounded.
+Example questions: 'Why is my score low?', 'Rewrite my summary to sound more senior',
+'What should I learn first to close the biggest gap?'
 
 ### Multi-Provider Abstraction
 llm_client.py wraps both Google Gemini and Anthropic Claude behind a single interface.
@@ -293,6 +329,6 @@ MIT © Vishnu (https://github.com/vishnu0529)
 
 ---
 
-Built with Google Gemini · FastAPI · Streamlit
+Built with Google Gemini 2.5 Flash · FastAPI · Streamlit · Agentic LLM Pipeline
 
 If this project helped you, consider giving it a star on GitHub ⭐
