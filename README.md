@@ -165,6 +165,8 @@ streamlit run dashboard.py
 Open http://localhost:8501 to use the app.
 API docs available at http://localhost:8000/docs.
 
+**🌐 Live API:** https://ai-resume-matcher-production-87f6.up.railway.app/docs
+
 ---
 
 ## ⚙️ Configuration
