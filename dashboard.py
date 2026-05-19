@@ -1,6 +1,6 @@
 import time, json, requests, streamlit as st
 
-API_BASE = "http://localhost:8000/api/v1"
+API_BASE = "https://ai-resume-matcher-production-87f6.up.railway.app/api/v1"
 
 st.set_page_config(page_title="AI Resume Matcher", page_icon="🎯", layout="wide", initial_sidebar_state="expanded")
 
