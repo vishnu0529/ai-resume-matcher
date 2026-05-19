@@ -162,7 +162,11 @@ Terminal 2 - Dashboard:
 streamlit run dashboard.py
 ```
 
-Open http://localhost:8501 to use the app.
+Open http://localhost:8501 to use the app locally.
+
+**Live Dashboard:** https://ai-resume-matcher-afsgzlmmklspynzeebp9w4.streamlit.app
+
+**Live API:** https://ai-resume-matcher-production-87f6.up.railway.app/docs
 API docs available at http://localhost:8000/docs.
 
 **🌐 Live API:** https://ai-resume-matcher-production-87f6.up.railway.app/docs
