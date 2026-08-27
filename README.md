@@ -8,10 +8,10 @@
 ![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet)
 ![Pipeline](https://img.shields.io/badge/Pipeline-Agentic%204--step-orange)
 
-> **v2.0** — Agentic 4-step LLM pipeline · AI chat coach · Score breakdown by category
+> **v2.0**: Agentic 4-step LLM pipeline · AI chat coach · Score breakdown by category
 > 
 > An intelligent recruitment assistant that runs a multi-agent analysis chain: skill extraction
-> → gap scoring → content generation → strategy — then lets you ask follow-up questions in plain English.
+> → gap scoring → content generation → strategy, then lets you ask follow-up questions in plain English.
 
 ---
 
@@ -37,7 +37,7 @@ It combines **Google Gemini 2.5 Flash** with a **FastAPI** backend and **Streaml
 to give candidates deep, actionable insights on how well their resume fits any job description.
 
 Unlike simple keyword matchers, this system uses large language models to understand context,
-nuance, and role-specific requirements — the same way a senior recruiter would.
+nuance, and role-specific requirements, the same way a senior recruiter would.
 
 **Built to demonstrate:**
 - Production-grade FastAPI application design
@@ -114,7 +114,7 @@ FastAPI Backend (localhost:8000)
 2. `parser.py` extracts and cleans text
 3. `recruiter_agent.py` runs 4 sequential LLM agents, each building on previous outputs
 4. Pydantic validates the assembled response
-5. Dashboard renders 6-tab UI — Skills, Content, ATS, Plan, Roles, Chat
+5. Dashboard renders 6-tab UI, Skills, Content, ATS, Plan, Roles, Chat
 
 ---
 
@@ -271,7 +271,7 @@ Instead of one monolithic prompt, the system runs 4 specialised LLM agents in se
 Each agent sees all previous outputs, enabling compound reasoning:
 
 - Step 1 Skill Extractor: precision extraction with evidence citations from both documents
-- Step 2 Gap Analyser: weighted scoring — technical 40%, experience 30%, domain 20%, soft 10%
+- Step 2 Gap Analyser: weighted scoring, technical 40%, experience 30%, domain 20%, soft 10%
 - Step 3 Content Generator: personalised content grounded in actual resume facts, not hallucinations
 - Step 4 Strategist: ATS keywords (exact JD strings), prioritised tips, quick wins, realistic timeline
 
@@ -283,7 +283,7 @@ Example questions: 'Why is my score low?', 'Rewrite my summary to sound more sen
 
 ### Multi-Provider Abstraction
 llm_client.py wraps both Google Gemini and Anthropic Claude behind a single interface.
-Switching providers is one env var change — no code modifications needed.
+Switching providers is one env var change, no code modifications needed.
 
 ### Pydantic Validation
 Every LLM response is validated through Pydantic schemas before reaching the client,
