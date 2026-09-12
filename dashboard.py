@@ -1,6 +1,6 @@
 import time, json, requests, streamlit as st
 
-API_BASE = "https://ai-resume-matcher-production-87f6.up.railway.app/api/v1"
+API_BASE = "https://ai-resume-matcher-xw2i.onrender.com/api/v1"
 
 st.set_page_config(page_title="AI Resume Matcher", page_icon="🎯", layout="wide", initial_sidebar_state="expanded")
 
@@ -84,6 +84,8 @@ if btn:
                 resp = requests.post(f"{API_BASE}/match", files={"resume":(rf.name,rf.getvalue(),rf.type)}, data={"job_description":jd,"use_agent":str(use_agent).lower()}, timeout=120)
             else:
                 resp = requests.post(f"{API_BASE}/match", data={"job_description":jd,"resume_text":rt,"use_agent":str(use_agent).lower()}, timeout=120)
+        except requests.exceptions.Timeout:
+            st.error("Request timed out — if the backend is on Render's free tier, it may be cold-starting. Wait ~30-60s and try again."); st.stop()
         except requests.ConnectionError:
             st.error("Cannot reach API - is uvicorn running?"); st.stop()
     elapsed = time.time() - t0
@@ -194,7 +196,7 @@ if "analysis" in st.session_state:
             st.rerun()
 
     st.divider()
-    st.caption(f"Gemini 2.5 Flash · Inter font · Agentic pipeline · v2.1 · {elapsed:.1f}s")
+    st.caption(f"Gemini 3.6 Flash · Inter font · Agentic pipeline · v2.1 · {elapsed:.1f}s")
 
 else:
     st.markdown('<div style="text-align:center;padding:3rem 0;"><div style="font-size:2.5rem;margin-bottom:0.75rem;">🎯</div><div style="font-size:1rem;font-weight:500;color:#1e293b;">Ready to analyse</div><div style="font-size:0.85rem;color:#94a3b8;margin-top:4px;">Upload your resume and paste a job description above</div></div>', unsafe_allow_html=True)
