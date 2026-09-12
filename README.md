@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Gemini](https://img.shields.io/badge/Gemini-2.5%20Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
+[![Gemini](https://img.shields.io/badge/Gemini-3.6%20Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.39-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 ![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet)
@@ -33,7 +33,7 @@
 ## 🧠 Overview
 
 AI Resume Matcher is a full-stack AI application that acts as an intelligent recruitment assistant.
-It combines **Google Gemini 2.5 Flash** with a **FastAPI** backend and **Streamlit** dashboard
+It combines **Google Gemini 3.6 Flash** with a **FastAPI** backend and **Streamlit** dashboard
 to give candidates deep, actionable insights on how well their resume fits any job description.
 
 Unlike simple keyword matchers, this system uses large language models to understand context,
@@ -53,7 +53,7 @@ nuance, and role-specific requirements, the same way a senior recruiter would.
 
 | Feature | Description |
 |---|---|
-| 🧠 **LLM Deep Analysis** | Gemini 2.5 Flash reads both documents for nuanced, context-aware match reports |
+| 🧠 **LLM Deep Analysis** | Gemini 3.6 Flash reads both documents for nuanced, context-aware match reports |
 | 📊 **Match Score and Grade** | 0-100 score with A-F grade, calibrated to real hiring bar |
 | 🔍 **Skill Gap Analysis** | Separates critical from nice-to-have missing skills with acquisition advice |
 | ✍️ **Tailored Resume Summary** | AI rewrites your summary specifically for the target role |
@@ -103,7 +103,7 @@ FastAPI Backend (localhost:8000)
                   llm_client.py
               ┌────────┴────────┐
         Google Gemini    Anthropic Claude
-         2.5 Flash         3.5 Haiku
+         3.6 Flash         3.5 Haiku
               └────────────────────────────────────► /api/v1/chat
                                                     (follow-up Q&A
                                                     with full context)
@@ -162,14 +162,12 @@ Terminal 2 - Dashboard:
 streamlit run dashboard.py
 ```
 
-Open http://localhost:8501 to use the app locally.
+Open http://localhost:8501 to use the app locally. API docs available at http://localhost:8000/docs.
 
-**Live Dashboard:** https://ai-resume-matcher-afsgzlmmklspynzeebp9w4.streamlit.app
-
-**Live API:** https://ai-resume-matcher-production-87f6.up.railway.app/docs
-API docs available at http://localhost:8000/docs.
-
-**🌐 Live API:** https://ai-resume-matcher-production-87f6.up.railway.app/docs
+> **Live deployment status:** this project was previously deployed to Railway (backend) and
+> Streamlit Community Cloud (dashboard), but the Railway deployment is currently down
+> (`gemini-2.0-flash`, its configured model, was retired by Google — fixed on `main`, but the
+> live instance needs a redeploy to pick up the fix and a live URL to replace this note with).
 
 ---
 
@@ -178,7 +176,7 @@ API docs available at http://localhost:8000/docs.
 | Variable | Default | Description |
 |---|---|---|
 | LLM_PROVIDER | google | google or anthropic |
-| LLM_MODEL | gemini-2.5-flash | Model name for chosen provider |
+| LLM_MODEL | gemini-3.6-flash | Model name for chosen provider |
 | GOOGLE_API_KEY | - | Google AI Studio key (free tier available) |
 | ANTHROPIC_API_KEY | - | Anthropic Console key |
 | MAX_RESUME_SIZE_MB | 5 | Max upload size |
@@ -244,20 +242,16 @@ ai-resume-matcher/
 │   ├── models/schemas.py       # Request/response schemas
 │   ├── routers/
 │   │   ├── health.py           # GET /health
-│   │   └── match.py            # POST /api/v1/match
+│   │   └── match.py            # POST /api/v1/match, POST /api/v1/chat
 │   ├── services/
 │   │   ├── recruiter_agent.py  # 4-step agentic pipeline (v2)
-│   │   ├── analyser.py         # Heuristic skill extraction
 │   │   ├── llm_client.py       # Gemini / Claude abstraction
-│   │   ├── matcher.py          # Single-shot LLM fallback
+│   │   ├── matcher.py          # Single-shot LLM fallback (use_agent=false)
 │   │   └── parser.py           # PDF/TXT extraction
 │   └── main.py                 # FastAPI app factory
-├── assets/
-│   └── dashboard_screenshot.png
-├── tests/test_api.py           # Full test suite
+├── tests/test_api.py           # Mocked test suite (health, validation, both pipelines, chat, parser utils)
 ├── dashboard.py                # Streamlit frontend v2 with chat
 ├── Dockerfile
-├── docker-compose.yml
 ├── requirements.txt
 └── .env.example
 ```
@@ -307,14 +301,15 @@ skill extraction, and grade logic.
 
 ### Docker
 ```
-docker compose up --build
+docker build -t ai-resume-matcher .
+docker run -p 8000:8000 --env-file .env ai-resume-matcher
 ```
 
 ### Railway or Render (Free Cloud)
 1. Push to GitHub
-2. Connect repo to Railway (https://railway.app) or Render (https://render.com)
-3. Add environment variables in dashboard
-4. Deploy - done
+2. Connect repo to Railway (https://railway.app) or Render (https://render.com) — both auto-detect the `Dockerfile`
+3. Add environment variables in dashboard (`GOOGLE_API_KEY` or `ANTHROPIC_API_KEY` + `LLM_PROVIDER=anthropic`)
+4. Deploy, then update `dashboard.py`'s `API_BASE` to point at the deployed URL and redeploy the Streamlit dashboard too
 
 ---
 
@@ -335,6 +330,6 @@ MIT © Vishnu (https://github.com/vishnu0529)
 
 ---
 
-Built with Google Gemini 2.5 Flash · FastAPI · Streamlit · Agentic LLM Pipeline
+Built with Google Gemini 3.6 Flash · FastAPI · Streamlit · Agentic LLM Pipeline
 
 If this project helped you, consider giving it a star on GitHub ⭐

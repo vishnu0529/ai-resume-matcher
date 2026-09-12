@@ -4,8 +4,7 @@ class Settings(BaseSettings):
     ANTHROPIC_API_KEY: str = ""
     GOOGLE_API_KEY: str = ""
     LLM_PROVIDER: str = "google"
-    LLM_MODEL: str = "gemini-2.0-flash"
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    LLM_MODEL: str = "gemini-3.6-flash"
     MAX_RESUME_SIZE_MB: int = 5
     LOG_LEVEL: str = "INFO"
 
