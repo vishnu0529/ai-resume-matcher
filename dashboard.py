@@ -44,7 +44,7 @@ with st.sidebar:
     for n, t, d in [("1","Skill extractor","Pulls skills from both docs"),("2","Gap analyser","Scores with breakdown"),("3","Content generator","Summary + cover letter"),("4","Strategist","ATS keywords + plan")]:
         st.markdown(f'<div style="display:flex;align-items:flex-start;margin-bottom:10px;"><span class="step-dot">{n}</span><div><div style="font-weight:500;font-size:0.82rem;color:#1e293b;">{t}</div><div style="font-size:0.75rem;color:#64748b;">{d}</div></div></div>', unsafe_allow_html=True)
     st.divider()
-    st.markdown("[GitHub](https://github.com/vishnu0529/ai-resume-matcher) · [Live API](https://ai-resume-matcher-production-87f6.up.railway.app/docs) · v2.0")
+    st.markdown("[GitHub](https://github.com/vishnu0529/ai-resume-matcher) · [Live API](https://ai-resume-matcher-xw2i.onrender.com/docs) · v2.0")
 
 st.markdown("""
 <div class="header-dark">
@@ -53,8 +53,8 @@ st.markdown("""
 <h1>🎯 AI Resume Matcher</h1>
 <p>Agentic LLM pipeline · 4-step analysis · Real-time career coaching</p>
 <div style="margin-top:10px;">
-<span class="hbadge hb-blue">Gemini 2.5 Flash</span>
-<span class="hbadge hb-green">FastAPI · Railway</span>
+<span class="hbadge hb-blue">Gemini 3.6 Flash</span>
+<span class="hbadge hb-green">FastAPI · Render</span>
 <span class="hbadge hb-purple">Agentic Pipeline</span>
 </div>
 </div>
