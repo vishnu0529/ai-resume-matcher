@@ -18,6 +18,7 @@ class AgentMatchResponse(MatchResponse):
     key_selling_points: list[str] = []
     quick_wins: list[str] = []
     timeline: str = ""
+    rag_sources: list[dict] = []
 
 
 class ChatRequest(BaseModel):

@@ -5,6 +5,8 @@ class SkillGap(BaseModel):
     skill: str
     importance: str
     how_to_acquire: str
+    source_title: str = ""
+    source_url: str = ""
 
 class MatchResponse(BaseModel):
     match_score: int = Field(..., ge=0, le=100)

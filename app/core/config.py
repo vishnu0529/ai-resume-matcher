@@ -7,6 +7,8 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "gemini-3.6-flash"
     MAX_RESUME_SIZE_MB: int = 5
     LOG_LEVEL: str = "INFO"
+    RAG_TOP_K: int = 2
+    RAG_MIN_SIMILARITY: float = 0.35
 
     model_config = {
         "env_file": ".env",

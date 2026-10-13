@@ -5,13 +5,14 @@
 [![Gemini](https://img.shields.io/badge/Gemini-3.6%20Flash-4285F4?logo=google&logoColor=white)](https://ai.google.dev)
 [![Streamlit](https://img.shields.io/badge/Streamlit-1.39-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-![Version](https://img.shields.io/badge/Version-2.0.0-blueviolet)
+![Version](https://img.shields.io/badge/Version-2.1.0-blueviolet)
 ![Pipeline](https://img.shields.io/badge/Pipeline-Agentic%204--step-orange)
+![RAG](https://img.shields.io/badge/RAG-Chroma%20%2B%20MiniLM-6366f1)
 
-> **v2.0**: Agentic 4-step LLM pipeline · AI chat coach · Score breakdown by category
+> **v2.1**: Agentic 4-step LLM pipeline · RAG-grounded skill-gap advice · AI chat coach · Score breakdown by category
 > 
 > An intelligent recruitment assistant that runs a multi-agent analysis chain: skill extraction
-> → gap scoring → content generation → strategy, then lets you ask follow-up questions in plain English.
+> → gap scoring → retrieval → content generation → strategy, then lets you ask follow-up questions in plain English.
 
 ---
 
@@ -42,6 +43,7 @@ nuance, and role-specific requirements, the same way a senior recruiter would.
 **Built to demonstrate:**
 - Production-grade FastAPI application design
 - LLM prompt engineering and structured JSON response parsing
+- Retrieval-augmented generation (RAG) with a local vector store, grounding LLM advice in real sources
 - Multi-provider LLM abstraction (Google Gemini + Anthropic Claude)
 - PDF parsing and text processing pipelines
 - Professional Streamlit dashboard UX
@@ -66,6 +68,7 @@ nuance, and role-specific requirements, the same way a senior recruiter would.
 | 📄 **PDF and TXT Support** | Upload resume as PDF or plain text |
 | 🐳 **Docker Ready** | One-command local or production deployment |
 | 🤖 **Agentic Pipeline** | 4-step LLM chain: extract → score → generate → strategise |
+| 📚 **RAG-Grounded Skill Advice** | Retrieves real learning resources (Chroma + MiniLM embeddings) for each skill gap instead of letting the LLM guess — see [docs/RAG_PIPELINE.md](docs/RAG_PIPELINE.md) |
 | 💬 **AI Chat Coach** | Ask follow-up questions about your analysis in plain English |
 | 📊 **Score Breakdown** | Category scores: technical, experience, domain fit, soft skills |
 | ⚡ **Quick Wins** | 3 things you can do today to improve your application |
@@ -94,11 +97,14 @@ FastAPI Backend (localhost:8000)
          ├─ [2] Gap Analyser       → match_score, grade, score_breakdown, strengths
          │        (sees Step 1 output)
          │
+         ├─ [R] RAG Retrieval      → real resources per missing skill (Chroma, in-memory,
+         │        (pure Python, no LLM)   60+ curated entries, MiniLM embeddings, no API key)
+         │
          ├─ [3] Content Generator  → tailored_summary, cover_letter, linkedin_headline
          │        (sees Steps 1-2 output)
          │
-         └─ [4] Strategist         → ats_keywords, improvement_tips, quick_wins, timeline
-                  (sees Steps 1-3 output)
+         └─ [4] Strategist         → ats_keywords, improvement_tips, quick_wins, timeline,
+                  (sees Steps 1-3 + Retrieval)   how_to_acquire (grounded, cites [R]'s resources)
                        |
                   llm_client.py
               ┌────────┴────────┐
@@ -216,7 +222,9 @@ Response:
     {
       "skill": "Docker",
       "importance": "critical",
-      "how_to_acquire": "Dockerise your existing FastAPI projects"
+      "how_to_acquire": "Follow the Docker Official Get Started Guide to build and run your first container.",
+      "source_title": "Docker Official Get Started Guide",
+      "source_url": "https://docs.docker.com/get-started/"
     }
   ],
   "strengths": ["Strong LLM engineering fundamentals"],
@@ -244,12 +252,17 @@ ai-resume-matcher/
 │   │   ├── health.py           # GET /health
 │   │   └── match.py            # POST /api/v1/match, POST /api/v1/chat
 │   ├── services/
-│   │   ├── recruiter_agent.py  # 4-step agentic pipeline (v2)
+│   │   ├── recruiter_agent.py  # 4-step agentic pipeline (v2), now RAG-grounded
+│   │   ├── retriever.py        # RAG retrieval — Chroma + MiniLM, in-memory
 │   │   ├── llm_client.py       # Gemini / Claude abstraction
 │   │   ├── matcher.py          # Single-shot LLM fallback (use_agent=false)
 │   │   └── parser.py           # PDF/TXT extraction
 │   └── main.py                 # FastAPI app factory
-├── tests/test_api.py           # Mocked test suite (health, validation, both pipelines, chat, parser utils)
+├── data/knowledge_base/skill_resources.json  # curated RAG corpus
+├── docs/RAG_PIPELINE.md        # RAG design, corpus schema, tuning, limitations
+├── tests/
+│   ├── test_api.py             # Mocked test suite (health, validation, both pipelines, chat, parser utils)
+│   └── test_retriever.py       # Retrieval unit tests (fixture corpus)
 ├── dashboard.py                # Streamlit frontend v2 with chat
 ├── Dockerfile
 ├── requirements.txt
@@ -274,6 +287,15 @@ After analysis, users ask follow-up questions via /api/v1/chat. The full analysi
 is passed as context with every question, so answers are specific and grounded.
 Example questions: 'Why is my score low?', 'Rewrite my summary to sound more senior',
 'What should I learn first to close the biggest gap?'
+
+### RAG-Grounded Skill Advice
+Between the Gap Analyser and the Strategist, a pure-Python retrieval step looks up each
+missing skill against a curated corpus of ~60 real learning resources (Chroma vector
+store, MiniLM embeddings, no API key required). The Strategist is then instructed to
+write `how_to_acquire` for each skill citing only what was actually retrieved — if
+nothing relevant was found, it falls back to a brief generic note with no fabricated
+source rather than inventing one. See [docs/RAG_PIPELINE.md](docs/RAG_PIPELINE.md) for
+the full design, corpus schema, and known limitations.
 
 ### Multi-Provider Abstraction
 llm_client.py wraps both Google Gemini and Anthropic Claude behind a single interface.

@@ -41,7 +41,7 @@ with st.sidebar:
     st.caption("Skill extraction → gap scoring → content → strategy")
     st.divider()
     st.markdown("### Pipeline")
-    for n, t, d in [("1","Skill extractor","Pulls skills from both docs"),("2","Gap analyser","Scores with breakdown"),("3","Content generator","Summary + cover letter"),("4","Strategist","ATS keywords + plan")]:
+    for n, t, d in [("1","Skill extractor","Pulls skills from both docs"),("2","Gap analyser","Scores with breakdown"),("R","RAG retrieval","Looks up real resources for gaps"),("3","Content generator","Summary + cover letter"),("4","Strategist","ATS keywords + grounded plan")]:
         st.markdown(f'<div style="display:flex;align-items:flex-start;margin-bottom:10px;"><span class="step-dot">{n}</span><div><div style="font-weight:500;font-size:0.82rem;color:#1e293b;">{t}</div><div style="font-size:0.75rem;color:#64748b;">{d}</div></div></div>', unsafe_allow_html=True)
     st.divider()
     st.markdown("[GitHub](https://github.com/vishnu0529/ai-resume-matcher) · [Live API](https://ai-resume-matcher-xw2i.onrender.com/docs) · v2.0")
@@ -140,7 +140,10 @@ if "analysis" in st.session_state:
             st.markdown('<p class="sec-label">Skill gaps</p>', unsafe_allow_html=True)
             for g in r.get("missing_skills",[]):
                 lbl = "Critical" if g["importance"]=="critical" else "Nice to have"
-                with st.expander(f"{lbl} - {g['skill']}"): st.write(g["how_to_acquire"])
+                with st.expander(f"{lbl} - {g['skill']}"):
+                    st.write(g["how_to_acquire"])
+                    if g.get("source_title"):
+                        st.caption(f"📎 Source: [{g['source_title']}]({g['source_url']})")
             st.markdown('<p class="sec-label" style="margin-top:1rem;">Weaknesses</p>', unsafe_allow_html=True)
             for w in r.get("weaknesses",[]): st.markdown(f'<div class="tip">- {w}</div>', unsafe_allow_html=True)
 
